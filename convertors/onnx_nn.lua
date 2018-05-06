@@ -1,7 +1,9 @@
 local convertor = require 'convertors.init'
 local onnx_nn = require 'convertors.onnx_nngraph'
 
-function onnx_nn.Linear(obj)
+function onnx_nn.Linear(obj, nInputs)
+  nInputs = nInputs or 1
+  assert(nInputs == 1, "nn.Linear can not have multiple inputs")
   if obj.bias == nil then
     local graph = onnx.graph.new({'x'}, {'y'})
     graph:add_node(onnx.node.Transpose.new({'b'}, {'bt'},
@@ -26,15 +28,41 @@ function onnx_nn.Linear(obj)
   end      
 end
 
-function onnx_nn.Identity(obj)
+function onnx_nn.Identity(obj, nInputs)
+  nInputs = nInputs or 1
   local graph = onnx.graph.new({'x'}, {'y'})
   graph:add_node(onnx.node.Identity.new({'x'}, {'y'}))
   return graph
 end
 
-function onnx_nn.Tanh(obj)
+function onnx_nn.Tanh(obj, nInputs)
+  nInputs = nInputs or 1
+  assert(nInputs == 1, "nn.Linear can not have multiple inputs")
   local graph = onnx.graph.new({'x'}, {'y'})
   graph:add_node(onnx.node.Tanh.new({'x'}, {'y'}))
+  return graph
+end
+
+function onnx_nn.CAddTable(obj, nInputs)
+  nInputs = nInputs or 2
+  if nInputs == 1 then
+    return onnx_nn.Identity(obj, 1)
+  end
+  local inputs = {}
+  for i = 1, nInputs do
+    table.insert(inputs, 'x'..i)
+  end
+  local graph = onnx.graph.new(inputs, {'y'})
+  local intSum = 'x1'
+  for i = 2, nInputs do
+    local resSum = 'y'
+    if i < nInputs then
+      resSum = 'y' .. i
+    end
+    graph:add_node(onnx.node.Add.new({intSum, inputs[i]}, {resSum},
+                                           onnx.helper.convertPrecision(obj.weight)))
+    intSum = resSum
+  end
   return graph
 end
 

@@ -1,9 +1,9 @@
 local Node = torch.class('onnx.node')
 
 function Node:__init(name, inputs, ninputs, outputs, noutputs)
-  assert(#inputs==ninputs, "invalid number of inputs paramters")
+  assert(#inputs==ninputs, "invalid number of inputs parameters")
   self._inputs = inputs
-  assert(#outputs==noutputs, "invalid number of outputs paramters")
+  assert(#outputs==noutputs, "invalid number of outputs parameters")
   self._outputs = outputs
   self._name = name
 end

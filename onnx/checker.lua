@@ -63,6 +63,29 @@ function Checker:dimCheck(p1, i1, p2, i2)
   end
 end
 
+function Checker:sameShape(t)
+  local i = 1
+  while i <= #t and #t[i] == 0 do
+    i = i + 1
+  end
+  if i > #t then
+    return true 
+  end
+  for j = 1, #t do
+    if #t[j] ~= 0 and t[j] ~= t[i] then
+      self._err = '`'..p1..'` (dim '..i1..') different from `'..p2..'` (dim '..i2..')'
+      return false
+    end
+    if #t[j] == 0 then
+      for _, d in ipairs(t[i]) do
+        table.insert(t[j], d)
+      end
+      self._change = true
+    end
+  end
+  return true
+end
+
 function Checker:setDims(p1, dims)
   local p1dim = self._params[p1]
   if p1dim == nil then
