@@ -72,8 +72,8 @@ function Checker:sameShape(t)
     return true 
   end
   for j = 1, #t do
-    if #t[j] ~= 0 and t[j] ~= t[i] then
-      self._err = '`'..p1..'` (dim '..i1..') different from `'..p2..'` (dim '..i2..')'
+    if #t[j] ~= 0 and #t[j] ~= #t[i] then
+      self._err = 'different shapes: '..#t[i]..'/'..#t[j]
       return false
     end
     if #t[j] == 0 then
