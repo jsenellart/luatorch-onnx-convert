@@ -24,6 +24,6 @@ function Transpose:getShapeConstraint(checker)
 end
 
 function Transpose:build(onnx_pb, node)
-  parent.build(self, node)
+  parent.build(self, onnx_pb, node)
   self.addAttribute(node, "perm", 'ints', self._perm, onnx_pb.AttributeProto.INTS)
 end

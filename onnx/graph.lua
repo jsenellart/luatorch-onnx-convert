@@ -89,8 +89,8 @@ function Graph:merge(subgraph, idx)
     end
     table.insert(self._node_output_map['n'..idx..'.'..param], pn)
   end
-  for param, obj in ipairs(subgraph._initializer) do
-    self._initializer['n'..idx..'.'..param] = obj
+  for param, obj in pairs(subgraph._initializer) do
+    self:add_initializer('n'..idx..'.'..param, obj)
   end
 end
 
@@ -149,6 +149,7 @@ function Graph:build(onnx_pb, onnx_graph)
 
   -- dump initializer
   for p, w in pairs(self._initializer) do
+    w = w:float()
     local initializer = onnx_graph.initializer:add()
     for d in ipairs(self._checker:params()[p]) do
       initializer.dims:append(d)

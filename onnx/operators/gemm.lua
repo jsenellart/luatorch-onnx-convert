@@ -57,7 +57,7 @@ function Gemm:getShapeConstraint(checker)
 end
 
 function Gemm:build(onnx_pb, node)
-  parent.build(self, node)
+  parent.build(self, onnx_pb, node)
   self.addAttribute(node, "alpha", 'f', self._alpha, onnx_pb.AttributeProto.FLOAT)
   self.addAttribute(node, "beta", 'f', self._beta, onnx_pb.AttributeProto.FLOAT)
   self.addAttribute(node, "broadcast", 'i', self._broadcastC, onnx_pb.AttributeProto.INT)

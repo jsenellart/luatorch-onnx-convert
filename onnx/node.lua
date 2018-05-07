@@ -20,7 +20,7 @@ function Node:getShapeConstraint(_)
   error("getShapeConstraint not implemented - for operator "..self._name)
 end
 
-function Node:build(node)
+function Node:build(onnx_pb, node)
   for _, p in ipairs(self._inputs) do
     node.input:append(p)
   end
