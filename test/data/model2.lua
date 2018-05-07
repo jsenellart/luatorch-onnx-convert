@@ -8,4 +8,4 @@ h2 = h1
      - nn.Linear(10, 1)
 mlp = nn.gModule({h1}, {h2})
 
-torch.save("model1.t7", mlp)
+torch.save("model2.t7", mlp)

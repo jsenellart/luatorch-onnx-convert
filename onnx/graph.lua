@@ -62,6 +62,12 @@ function Graph:substitute_param(p1, p2)
 end
 
 function Graph:merge(subgraph, idx)
+  for i, v in ipairs(subgraph._inputs) do
+    subgraph._inputs[i] = 'n'..idx..'.'..v
+  end
+  for i, v in ipairs(subgraph._outputs) do
+    subgraph._outputs[i] = 'n'..idx..'.'..v
+  end
   for _, n in ipairs(subgraph._nodes) do
     table.insert(self._nodes, n)
     self._node_map[torch.pointer(n)] = n
@@ -70,11 +76,6 @@ function Graph:merge(subgraph, idx)
     end
     for i,v in ipairs(n._outputs) do
       n._outputs[i] = 'n'..idx..'.'..v
-    end
-  end
-  if idx == 1 then
-    for _, v in ipairs(subgraph._inputs) do
-      table.insert(self._inputs, 'n'..idx..'.'..v)
     end
   end
   for param, pn in pairs(subgraph._node_input_map) do
