@@ -37,9 +37,17 @@ end
 
 function onnx_nn.Tanh(obj, nInputs)
   nInputs = nInputs or 1
-  assert(nInputs == 1, "nn.Linear can not have multiple inputs")
+  assert(nInputs == 1, "nn.Tanh can not have multiple inputs")
   local graph = onnx.graph.new({'x'}, {'y'})
   graph:add_node(onnx.node.Tanh.new({'x'}, {'y'}))
+  return graph
+end
+
+function onnx_nn.Sigmoid(obj, nInputs)
+  nInputs = nInputs or 1
+  assert(nInputs == 1, "nn.Sigmoid can not have multiple inputs")
+  local graph = onnx.graph.new({'x'}, {'y'})
+  graph:add_node(onnx.node.Sigmoid.new({'x'}, {'y'}))
   return graph
 end
 
