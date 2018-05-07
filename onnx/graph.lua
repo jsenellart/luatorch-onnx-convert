@@ -151,7 +151,7 @@ function Graph:build(onnx_pb, onnx_graph)
   for p, w in pairs(self._initializer) do
     w = w:float()
     local initializer = onnx_graph.initializer:add()
-    for d in ipairs(self._checker:params()[p]) do
+    for _, d in ipairs(self._checker:params()[p]) do
       initializer.dims:append(d)
     end
     initializer.data_type = onnx_pb.TensorProto.FLOAT
