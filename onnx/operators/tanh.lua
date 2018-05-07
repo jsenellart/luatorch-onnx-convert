@@ -2,6 +2,7 @@ local Tanh, parent = torch.class('onnx.node.Tanh', 'onnx.node')
 
 function Tanh:__init(inputs, outputs, precision)
   parent.__init(self, "Tanh", inputs, 1, outputs, 1)
+  self._precision = precision
 end
 
 -- given some constraint for the named parameters, check the compatibility
@@ -11,7 +12,7 @@ function Tanh:getShapeConstraint(checker)
   local cy = checker:getParam(self._outputs[1])
 
   checker:setChange(false)
-  _ = checker:sameShape({cx, cy}) or checker:fail()
+  self._pass = checker:sameShape({cx, cy}) or checker:fail()
 
   return checker:hasChange()
 end

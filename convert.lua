@@ -40,9 +40,9 @@ cmd:option('-force', false, [[Force output model creation even if the target fil
 
 local opt = cmd:parse(arg)
 
-local function convert(output_dir, object, path)
-  path = path or ''
-  local prefpath = path
+local function convert(output_dir, object, thepath)
+  thepath = thepath or ''
+  local prefpath = thepath
   if prefpath ~= '' then
     prefpath = prefpath .. '.'
   end
@@ -55,24 +55,24 @@ local function convert(output_dir, object, path)
   elseif type(object) == 'userdata' or type(object) == 'table' then
     local convert_func = convertor.isSupported(tname)
     if convert_func then
-      print('convert '..path..'=`'..tname..'`')
+      print('convert '..thepath..'=`'..tname..'`')
       local model = onnx_pb.ModelProto()
       model.ir_version = onnx_pb.VERSION_IR_VERSION_ENUM.number
       model.producer_name = 'lua-onnx-convert'
       model.producer_version = '0.0.1'
-      version = model.opset_import:add()
+      local version = model.opset_import:add()
       version.version = 6
-      model.graph.name = path
-      graph = convert_func(object)
-      graph:build(model.graph)
-      local output = assert(io.open(output_dir .. '/' .. path .. '.onnx', "wb"))
+      model.graph.name = thepath
+      local graph = convert_func(object)
+      graph:build(onnx_pb, model.graph)
+      local output = assert(io.open(output_dir .. '/' .. thepath .. '.onnx', "wb"))
       model:SerializeToIOString(output)
       output:close()
     else
       if object.modules and #object.modules == 1 then
         convert(output_dir, object.modules, prefpath..'modules')
       end
-      print('\tskipping '..path..' ('..tname..')')
+      print('\tskipping '..thepath..' ('..tname..')')
     end
   end
 end
@@ -95,7 +95,7 @@ local function main()
   end
 
   if path.exists(opt.output_dir) then
-    assert(path.isdir(opt.output_dir), 
+    assert(path.isdir(opt.output_dir),
              'output ('..opt.output_dir..') is not a directory')
     assert(opt.force,
              'output dir already exists; use -force to overwrite.')
@@ -124,7 +124,7 @@ local function main()
   print('Loading model \'' .. opt.t7 .. '\'...')
 
   local obj
-  local _, err = pcall(function ()
+  _, err = pcall(function ()
     obj = torch.load(opt.t7)
   end)
   if err then

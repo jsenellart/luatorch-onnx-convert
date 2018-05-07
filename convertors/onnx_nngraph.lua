@@ -3,16 +3,14 @@ local onnx_nn = {}
 local convertor = require 'convertors.init'
 require 'onnx.init'
 
-local nodeIdx = {}
-
 -- search recursively for refp parents, and select corresponding mapindex
-local function _fix_label_rec(refp, p, mapIndex, selectindex, graph, parent, nodes, graphs, subgraphs)
+local function _fix_label_rec(refp, p, mapIndex, selectindex, graph, parent, nodes, subgraphs)
   for _, q in pairs(parent[p]) do
-    mapIndex =  nodes[p].data.mapindex[nodes[q].data]
+    mapIndex =  nodes[p].data.mapindex[nodes[q].data] or mapIndex
     if parent[q] ~= nil and not nodes[q].data.module then
-      return _fix_label_rec(refp, q, mapIndex, selectindex, graph, parent, nodes, graphs, subgraphs)
+      return _fix_label_rec(refp, q, mapIndex, selectindex, graph, parent, nodes, subgraphs)
     end
-    local poutputs
+    local qoutputs
     if parent[q] == nil then
       qoutputs = graph._inputs
     else
@@ -55,10 +53,9 @@ function onnx_nn.gModule(obj)
 
   for i, node in ipairs(obj.forwardnodes) do
     nodes[torch.pointer(node)] = node
-    nodeIdx[torch.pointer(node)] = i
     local object = node.data.module
     if node.data.selectindex ~= nil then
-      for j, child in ipairs(node.children) do
+      for _, child in ipairs(node.children) do
         nInput[torch.pointer(child)] = 1
         selectInput[torch.pointer(child)] = node.data.selectindex
         if parent[torch.pointer(child)] == nil then
@@ -70,7 +67,7 @@ function onnx_nn.gModule(obj)
       -- this node is just an identity (initial node most likely)
       -- we don't want to create a useless Identity - let us just
       -- forward all the input nodes
-      for j, child in ipairs(node.children) do
+      for _, child in ipairs(node.children) do
         selectInput[torch.pointer(child)] = selectInput[torch.pointer(node)]
         nInput[torch.pointer(child)] = nInput[torch.pointer(node)]
         if parent[torch.pointer(child)] == nil then
@@ -92,7 +89,7 @@ function onnx_nn.gModule(obj)
           local subgraph = convert_func(object, nInput[torch.pointer(node)])
           graph:merge(subgraph, i)
           subgraphs[torch.pointer(node)] = subgraph
-          for j, child in ipairs(node.children) do
+          for _, child in ipairs(node.children) do
             if nInput[torch.pointer(child)] == nil then
               nInput[torch.pointer(child)] = 0
             end
@@ -118,7 +115,7 @@ function onnx_nn.gModule(obj)
   -- connecting output to inputs
   for p, _ in pairs(subgraphs) do
     local selectindex = selectInput[p]
-    _fix_label_rec(p, p, nil, selectindex, graph, parent, nodes, graphs, subgraphs)
+    _fix_label_rec(p, p, nil, selectindex, graph, parent, nodes, subgraphs)
   end
 
   return graph

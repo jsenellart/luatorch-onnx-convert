@@ -13,11 +13,7 @@ function Add:getShapeConstraint(checker)
   local cy = checker:getParam(self._outputs[1])
 
   checker:setChange(false)
-  _ = checker:sameShape({cx1, cx2, cy}) or checker:fail()
+  self._pass = checker:sameShape({cx1, cx2, cy}) or checker:fail()
 
   return checker:hasChange()
-end
-
-function Add:build(node)
-  parent.build(self, node)
 end

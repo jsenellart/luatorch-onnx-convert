@@ -11,10 +11,6 @@ function Gemm:__init(inputs, outputs, precision,
   self._transposeB = transposeB
 end
 
-function Gemm:getPrecision()
-  return precision
-end
-
 -- given some constraint for the named parameters, check the compatibility
 -- and refine these constraints
 function Gemm:getShapeConstraint(checker)
@@ -29,38 +25,38 @@ function Gemm:getShapeConstraint(checker)
     count = count + 1
     checker:setChange(false)
     if not self._transposeA then
-      _ = checker:dimCheck(ca, 1, cy, 1) or checker:fail()
+      self._pass = checker:dimCheck(ca, 1, cy, 1) or checker:fail()
       if self._transposeB then
-        _ = checker:dimCheck(ca, 2, cb, 2) or checker:fail()
+        self._pass = checker:dimCheck(ca, 2, cb, 2) or checker:fail()
       else
-        _ = checker:dimCheck(ca, 2, cb, 1) or checker:fail()
+        self._pass = checker:dimCheck(ca, 2, cb, 1) or checker:fail()
       end
     else
-      _ = checker:dimCheck(ca, 2, cy, 1) or checker:fail()
+      self._pass = checker:dimCheck(ca, 2, cy, 1) or checker:fail()
       if self._transposeB then
-        _ = checker:dimCheck(ca, 1, cb, 2) or checker:fail()
+        self._pass = checker:dimCheck(ca, 1, cb, 2) or checker:fail()
       else
-        _ = checker:dimCheck(ca, 1, cb, 1) or checker:fail()
+        self._pass = checker:dimCheck(ca, 1, cb, 1) or checker:fail()
       end
     end
     if self._transposeB then
-      _ = checker:dimCheck(cb, 1, cy, 2) or checker:fail()
+      self._pass = checker:dimCheck(cb, 1, cy, 2) or checker:fail()
     else
-      _ = checker:dimCheck(cb, 2, cy, 2) or checker:fail()
+      self._pass = checker:dimCheck(cb, 2, cy, 2) or checker:fail()
     end
     if #cc == 1 then
-      _ = checker:dimCheck(cc, 1, cy, 2) or 
+      self._pass = checker:dimCheck(cc, 1, cy, 2) or
           checker:dimCheck(cc, 1, cy, 1) or checker:fail()
     elseif #cc == 2 then
-      _ = checker:dimCheck(cc, 1, cy, 1) or checker:fail()
-      _ = checker:dimCheck(cc, 2, cy, 2) or checker:fail()
+      self._pass = checker:dimCheck(cc, 1, cy, 1) or checker:fail()
+      self._pass = checker:dimCheck(cc, 2, cy, 2) or checker:fail()
     end
   end
 
   return count ~= 1
 end
 
-function Gemm:build(node)
+function Gemm:build(onnx_pb, node)
   parent.build(self, node)
   self.addAttribute(node, "alpha", 'f', self._alpha, onnx_pb.AttributeProto.FLOAT)
   self.addAttribute(node, "beta", 'f', self._beta, onnx_pb.AttributeProto.FLOAT)

@@ -1,4 +1,3 @@
-local convertor = require 'convertors.init'
 local onnx_nn = require 'convertors.onnx_nngraph'
 
 function onnx_nn.Linear(obj, nInputs)
@@ -7,7 +6,6 @@ function onnx_nn.Linear(obj, nInputs)
   if obj.bias == nil then
     local graph = onnx.graph.new({'x'}, {'y'})
     graph:add_node(onnx.node.Transpose.new({'b'}, {'bt'},
-                                           onnx.helper.convertPrecision(obj.weight),
                                            { 1, 0 }))
     graph:add_node(onnx.node.MatMul.new({'x', 'bt'}, {'y'},
                                         onnx.helper.convertPrecision(obj.weight)))
@@ -16,7 +14,7 @@ function onnx_nn.Linear(obj, nInputs)
   else
     local graph = onnx.graph.new({'x'}, {'y'})
     graph:add_node(onnx.node.Gemm.new({'x', 'b', 'c'}, {'y'},
-                                      onnx.helper.convertPrecision(weight),
+                                      onnx.helper.convertPrecision(obj.weight),
                                       1.0, -- alpha
                                       1.0, -- beta
                                       1,   -- broadcast C
@@ -25,17 +23,17 @@ function onnx_nn.Linear(obj, nInputs)
     graph:add_initializer('b', obj.weight)
     graph:add_initializer('c', obj.bias)
     return graph
-  end      
+  end
 end
 
-function onnx_nn.Identity(obj, nInputs)
+function onnx_nn.Identity(_, nInputs)
   nInputs = nInputs or 1
   local graph = onnx.graph.new({'x'}, {'y'})
   graph:add_node(onnx.node.Identity.new({'x'}, {'y'}))
   return graph
 end
 
-function onnx_nn.Tanh(obj, nInputs)
+function onnx_nn.Tanh(_, nInputs)
   nInputs = nInputs or 1
   assert(nInputs == 1, "nn.Tanh can not have multiple inputs")
   local graph = onnx.graph.new({'x'}, {'y'})
@@ -43,7 +41,7 @@ function onnx_nn.Tanh(obj, nInputs)
   return graph
 end
 
-function onnx_nn.Sigmoid(obj, nInputs)
+function onnx_nn.Sigmoid(_, nInputs)
   nInputs = nInputs or 1
   assert(nInputs == 1, "nn.Sigmoid can not have multiple inputs")
   local graph = onnx.graph.new({'x'}, {'y'})

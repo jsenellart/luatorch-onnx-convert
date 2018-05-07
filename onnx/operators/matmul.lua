@@ -17,14 +17,10 @@ function MatMul:getShapeConstraint(checker)
   while checker:hasChange() do
     count = count + 1
     checker:setChange(false)
-    _ = checker:dimCheck(ca, 1, cy, 1) or checker:fail()
-    _ = checker:dimCheck(ca, 2, cb, 1) or checker:fail()
-    _ = checker:dimCheck(cb, 2, cy, 2) or checker:fail()
+    self._pass = checker:dimCheck(ca, 1, cy, 1) or checker:fail()
+    self._pass = checker:dimCheck(ca, 2, cb, 1) or checker:fail()
+    self._pass = checker:dimCheck(cb, 2, cy, 2) or checker:fail()
   end
 
   return count ~= 1
-end
-
-function MatMul:build(node)
-  parent.build(self, node)
 end

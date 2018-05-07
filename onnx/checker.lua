@@ -38,7 +38,7 @@ end
 
 function Checker:changeUnk(v1, v2)
   self._change = true
-  for p, S in pairs(self._params) do
+  for _, S in pairs(self._params) do
     for i, d in ipairs(S) do
       if d == v1 then
         S[i] = v2
@@ -69,7 +69,7 @@ function Checker:sameShape(t)
     i = i + 1
   end
   if i > #t then
-    return true 
+    return true
   end
   for j = 1, #t do
     if #t[j] ~= 0 and #t[j] ~= #t[i] then

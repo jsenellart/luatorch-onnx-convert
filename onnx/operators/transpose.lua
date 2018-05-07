@@ -1,6 +1,6 @@
 local Transpose, parent = torch.class('onnx.node.Transpose', 'onnx.node')
 
-function Transpose:__init(inputs, outputs, precision, perm)
+function Transpose:__init(inputs, outputs, perm)
   parent.__init(self, "Transpose", inputs, 1, outputs, 1)
   self._perm = perm
 end
@@ -16,14 +16,14 @@ function Transpose:getShapeConstraint(checker)
   while checker:hasChange() do
     count = count + 1
     checker:setChange(false)
-    _ = checker:dimCheck(cx, 1, cy, 2) or checker:fail()
-    _ = checker:dimCheck(cx, 2, cy, 1) or checker:fail()
+    self._pass = checker:dimCheck(cx, 1, cy, 2) or checker:fail()
+    self._pass = checker:dimCheck(cx, 2, cy, 1) or checker:fail()
   end
 
   return count ~= 1
 end
 
-function Transpose:build(node)
+function Transpose:build(onnx_pb, node)
   parent.build(self, node)
   self.addAttribute(node, "perm", 'ints', self._perm, onnx_pb.AttributeProto.INTS)
 end

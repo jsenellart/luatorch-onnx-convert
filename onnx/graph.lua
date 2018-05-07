@@ -1,6 +1,5 @@
 local Graph = torch.class('onnx.graph')
-require 'paths'
-onnx_pb = require('onnx_pb')
+local paths = require 'paths'
 
 function Graph:__init(inputs, outputs)
   self._nodes = {}
@@ -95,20 +94,20 @@ function Graph:merge(subgraph, idx)
   end
 end
 
-function Graph:build(onnx_graph_pb)
+function Graph:build(onnx_pb, onnx_graph)
 
   -- shape inference
   local change = true
   while change do
     change = false
-    for p, n in pairs(self._nodes) do
+    for _, n in pairs(self._nodes) do
       change = n:getShapeConstraint(self._checker) or change
     end
   end
 
   -- build the graph - input params
   for _, p in ipairs(self._inputs) do
-    local input = onnx_graph_pb.input:add()
+    local input = onnx_graph.input:add()
     input.name = p
     input.type.tensor_type.elem_type = onnx_pb.TensorProto.FLOAT
     -- needed because of bug in protobuf library
@@ -120,7 +119,7 @@ function Graph:build(onnx_graph_pb)
 
   -- add parameters for which we have initializer
   for p, _ in pairs(self._initializer) do
-    local input = onnx_graph_pb.input:add()
+    local input = onnx_graph.input:add()
     input.name = p
     input.type.tensor_type.elem_type = onnx_pb.TensorProto.FLOAT
     -- needed because of bug in protobuf library
@@ -132,7 +131,7 @@ function Graph:build(onnx_graph_pb)
 
   -- build the graph - output params
   for _, p in ipairs(self._outputs) do
-    local output = onnx_graph_pb.output:add()
+    local output = onnx_graph.output:add()
     output.name = p
     output.type.tensor_type.elem_type = onnx_pb.TensorProto.FLOAT
     -- needed because of bug in protobuf library
@@ -143,20 +142,20 @@ function Graph:build(onnx_graph_pb)
   end
 
   -- build the graph - the actual nodes
-  for p, n in pairs(self._nodes) do
-    local node = onnx_graph_pb.node:add()
-    n:build(node)
+  for _, n in pairs(self._nodes) do
+    local node = onnx_graph.node:add()
+    n:build(onnx_pb, node)
   end
 
   -- dump initializer
   for p, w in pairs(self._initializer) do
-    local initializer = onnx_graph_pb.initializer:add()
+    local initializer = onnx_graph.initializer:add()
     for d in ipairs(self._checker:params()[p]) do
       initializer.dims:append(d)
     end
     initializer.data_type = onnx_pb.TensorProto.FLOAT
     initializer.name = p
-    file = torch.DiskFile(self._tmpfile, 'w'):binary()
+    local file = torch.DiskFile(self._tmpfile, 'w'):binary()
     file:writeFloat(w:storage().new(w:storage(), w:storageOffset(), w:nElement()))
     file:close()
     local inp = assert(io.open(self._tmpfile, "rb"))

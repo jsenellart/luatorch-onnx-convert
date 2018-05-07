@@ -11,7 +11,7 @@ function Identity:getShapeConstraint(checker)
   local cy = checker:getParam(self._outputs[1])
 
   checker:setChange(false)
-  _ = checker:sameShape({cx, cy}) or checker:fail()
+  self._pass = checker:sameShape({cx, cy}) or checker:fail()
 
   return checker:hasChange()
 end

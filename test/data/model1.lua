@@ -1,6 +1,6 @@
 require 'nn'
 
-mod = {}
+local mod = {}
 
 mod['linear-bias'] = nn.Linear(20, 10):float()
 mod['linear-nobias'] = nn.Linear(20, 10, false):float()
