@@ -58,7 +58,7 @@ function Checker:dimCheck(p1, i1, p2, i2)
     self:changeUnk(p2[i2], p1[i1])
     return true
   else
-    self._err = '`'..p1..'` (dim '..i1..') different from `'..p2..'` (dim '..i2..')'
+    self._err = '`'..p1[i1]..'` (dim '..i1..') different from `'..p2[i2]..'` (dim '..i2..')'
     return false
   end
 end

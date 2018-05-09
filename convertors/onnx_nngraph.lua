@@ -105,7 +105,7 @@ function onnx_nn.gModule(obj)
             table.insert(parent[torch.pointer(child)], torch.pointer(node))
           end
         else
-          error('operator '..tname..' not supported')
+          error('module `'..tname..'` not supported')
         end
       end
     end

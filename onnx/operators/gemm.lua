@@ -6,9 +6,9 @@ function Gemm:__init(inputs, outputs, precision,
   self._precision = precision
   self._alpha = alpha
   self._beta = beta
-  self._broadcastC = broadcastC
-  self._transposeA = transposeA
-  self._transposeB = transposeB
+  self._broadcastC = broadcastC == 1
+  self._transposeA = transposeA == 1
+  self._transposeB = transposeB == 1
 end
 
 -- given some constraint for the named parameters, check the compatibility
@@ -60,7 +60,7 @@ function Gemm:build(onnx_pb, node)
   parent.build(self, onnx_pb, node)
   self.addAttribute(node, "alpha", 'f', self._alpha, onnx_pb.AttributeProto.FLOAT)
   self.addAttribute(node, "beta", 'f', self._beta, onnx_pb.AttributeProto.FLOAT)
-  self.addAttribute(node, "broadcast", 'i', self._broadcastC, onnx_pb.AttributeProto.INT)
-  self.addAttribute(node, "transA", 'i', self._transposeA, onnx_pb.AttributeProto.INT)
-  self.addAttribute(node, "transB", 'i', self._transposeB, onnx_pb.AttributeProto.INT)
+  self.addAttribute(node, "broadcast", 'i', self._broadcastC and 1 or 0, onnx_pb.AttributeProto.INT)
+  self.addAttribute(node, "transA", 'i', self._transposeA and 1 or 0, onnx_pb.AttributeProto.INT)
+  self.addAttribute(node, "transB", 'i', self._transposeB and 1 or 0, onnx_pb.AttributeProto.INT)
 end
