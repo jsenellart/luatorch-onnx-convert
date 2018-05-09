@@ -33,6 +33,35 @@ function onnx_nn.Identity(_, nInputs)
   return graph
 end
 
+function onnx_nn.Reshape(obj, nInputs)
+  nInputs = nInputs or 1
+  assert(nInputs == 1, "nn.Reshape can not have multiple inputs")
+  local graph = onnx.graph.new({'x'}, {'y'})
+  graph:add_node(onnx.node.Reshape.new({'x', 'ind'}, {'y'}, obj.size:totable()))
+  graph:add_initializer('ind', torch.Tensor(obj.size:totable()))
+  return graph
+end
+
+function onnx_nn.Abs(_, nInputs)
+  nInputs = nInputs or 1
+  assert(nInputs == 1, "nn.Abs can not have multiple inputs")
+  local graph = onnx.graph.new({'x'}, {'y'})
+  graph:add_node(onnx.node.Abs.new({'x'}, {'y'}))
+  return graph
+end
+
+function onnx_nn.LookupTable(obj, nInputs)
+  nInputs = nInputs or 1
+  assert(nInputs == 1, "nn.Lookup can not have multiple inputs")
+  local graph = onnx.graph.new({'x'}, {'y'})
+  graph:add_node(onnx.node.Gather.new({'x', 'ind'}, {'y'},
+                                   onnx.helper.convertPrecision(obj.weight),
+                                   0)) -- axis
+  graph:add_initializer('ind', obj.weight)
+  graph._checker:assert1D('x')
+  return graph
+end
+
 function onnx_nn.Tanh(_, nInputs)
   nInputs = nInputs or 1
   assert(nInputs == 1, "nn.Tanh can not have multiple inputs")

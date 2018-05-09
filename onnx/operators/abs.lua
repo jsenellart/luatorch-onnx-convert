@@ -1,12 +1,12 @@
-local Sigmoid, parent = torch.class('onnx.node.Sigmoid', 'onnx.node')
+local Abs, parent = torch.class('onnx.node.Abs', 'onnx.node')
 
-function Sigmoid:__init(inputs, outputs)
-  parent.__init(self, "Sigmoid", inputs, 1, outputs, 1)
+function Abs:__init(inputs, outputs)
+  parent.__init(self, "Abs", inputs, 1, outputs, 1)
 end
 
 -- given some constraint for the named parameters, check the compatibility
 -- and refine these constraints
-function Sigmoid:getShapeConstraint(checker)
+function Abs:getShapeConstraint(checker)
   local cx = checker:getParam(self._inputs[1])
   local cy = checker:getParam(self._outputs[1])
 
