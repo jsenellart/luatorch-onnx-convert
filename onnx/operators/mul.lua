@@ -1,13 +1,13 @@
-local Add, parent = torch.class('onnx.node.Add', 'onnx.node')
+local Mul, parent = torch.class('onnx.node.Mul', 'onnx.node')
 
-function Add:__init(inputs, outputs, precision)
-  parent.__init(self, "Add", inputs, 2, outputs, 1)
+function Mul:__init(inputs, outputs, precision)
+  parent.__init(self, "Mul", inputs, 2, outputs, 1)
   self._precision = precision
 end
 
 -- given some constraint for the named parameters, check the compatibility
 -- and refine these constraints
-function Add:getShapeConstraint(checker)
+function Mul:getShapeConstraint(checker)
   checker:setChange(false)
 
   local cx1 = checker:getParam(self._inputs[1])

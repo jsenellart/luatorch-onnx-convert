@@ -8,19 +8,15 @@ end
 -- given some constraint for the named parameters, check the compatibility
 -- and refine these constraints
 function MatMul:getShapeConstraint(checker)
+  checker:setChange(true)
+
   local ca = checker:assert2D(self._inputs[1])
   local cb = checker:assert2D(self._inputs[2])
   local cy = checker:assert2D(self._outputs[1])
 
-  local count = 0
-  checker:setChange(true)
-  while checker:hasChange() do
-    count = count + 1
-    checker:setChange(false)
-    self._pass = checker:dimCheck(ca, 1, cy, 1) or checker:fail()
-    self._pass = checker:dimCheck(ca, 2, cb, 1) or checker:fail()
-    self._pass = checker:dimCheck(cb, 2, cy, 2) or checker:fail()
-  end
+  self._pass = checker:dimCheck(ca, 1, cy, 1) or checker:fail()
+  self._pass = checker:dimCheck(ca, 2, cb, 1) or checker:fail()
+  self._pass = checker:dimCheck(cb, 2, cy, 2) or checker:fail()
 
-  return count ~= 1
+  return checker:hasChange()
 end

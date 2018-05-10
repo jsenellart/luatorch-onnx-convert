@@ -1,12 +1,12 @@
-local Abs, parent = torch.class('onnx.node.Abs', 'onnx.node')
+local SoftMax, parent = torch.class('onnx.node.SoftMax', 'onnx.node')
 
-function Abs:__init(inputs, outputs)
-  parent.__init(self, "Abs", inputs, 1, outputs, 1)
+function SoftMax:__init(inputs, outputs)
+  parent.__init(self, "SoftMax", inputs, 1, outputs, 1)
 end
 
 -- given some constraint for the named parameters, check the compatibility
 -- and refine these constraints
-function Abs:getShapeConstraint(checker)
+function SoftMax:getShapeConstraint(checker)
   checker:setChange(false)
 
   local cx = checker:getParam(self._inputs[1])

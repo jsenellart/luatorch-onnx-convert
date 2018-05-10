@@ -14,16 +14,31 @@ end
 -- given some constraint for the named parameters, check the compatibility
 -- and refine these constraints
 function Gemm:getShapeConstraint(checker)
-  local ca = checker:assert2D(self._inputs[1])
+  checker:setChange(false)
+  local ca = checker:getParam(self._inputs[1])
   local cb = checker:assert2D(self._inputs[2])
-  local cc = checker:assert1or2D(self._inputs[3])
-  local cy = checker:assert2D(self._outputs[1])
+  local cc = checker:getParam(self._inputs[3])
+  local cy = checker:getParam(self._outputs[1])
 
-  local count = 0
-  checker:setChange(true)
-  while checker:hasChange() do
-    count = count + 1
-    checker:setChange(false)
+  if #cy == 1 or #ca == 1 then
+    -- 1D input
+    ca = checker:assert1D(self._inputs[1])
+    cc = checker:assert1D(self._inputs[3])
+    cy = checker:assert1D(self._outputs[1])
+    assert(not self._transposeA, "cannot use transposeA with 1D input matrix")
+    if self._transposeB then
+      self._pass = checker:dimCheck(ca, 1, cb, 2) or checker:fail()
+      self._pass = checker:dimCheck(cb, 1, cy, 1) or checker:fail()
+    else
+      self._pass = checker:dimCheck(ca, 1, cb, 1) or checker:fail()
+      self._pass = checker:dimCheck(cb, 2, cy, 1) or checker:fail()
+    end
+    self._pass = checker:dimCheck(cc, 1, cy, 1) or checker:fail()
+  elseif #ca == 2 or #cy == 2 then
+    ca = checker:assert2D(self._inputs[1])
+    cc = checker:assert1or2D(self._inputs[3])
+    cy = checker:assert2D(self._outputs[1])
+    -- 2D input
     if not self._transposeA then
       self._pass = checker:dimCheck(ca, 1, cy, 1) or checker:fail()
       if self._transposeB then
@@ -53,7 +68,7 @@ function Gemm:getShapeConstraint(checker)
     end
   end
 
-  return count ~= 1
+  return checker:hasChange()
 end
 
 function Gemm:build(onnx_pb, node)

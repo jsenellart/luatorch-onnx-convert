@@ -35,6 +35,12 @@ function Graph:add_initializer(p, obj)
   self._checker:setDims(p, torch.totable(obj:size()))
 end
 
+function Graph:set_dimension(p, dims)
+  if dims ~= nil then
+    self._checker:setDims(p, dims)
+  end
+end
+
 function Graph:substitute_param(p1, p2)
   for _, n in ipairs(self._nodes) do
     for i,v in ipairs(n._inputs) do
@@ -58,6 +64,7 @@ function Graph:substitute_param(p1, p2)
       self._outputs[i] = p2
     end
   end
+  self._checker:sameShape({self._checker:getParam(p1), self._checker:getParam(p2)})
 end
 
 function Graph:merge(subgraph, idx)
@@ -91,6 +98,10 @@ function Graph:merge(subgraph, idx)
   end
   for param, obj in pairs(subgraph._initializer) do
     self:add_initializer('n'..idx..'.'..param, obj)
+  end
+  -- propagate parameter constrain in subgraph into graph
+  for param, shape in pairs(subgraph._checker._params) do
+    self._checker._params['n'..idx..'.'..param] = shape
   end
 end
 
