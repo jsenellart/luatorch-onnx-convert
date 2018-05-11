@@ -42,7 +42,7 @@ function Split:getShapeConstraint(checker)
         end
       end
     else
-      assert(#cx == #cys[1], "incorrect dimension of SplitTable input")
+      assert(#cx == #cys[1], "incorrect dimension of split input")
       for i, d in pairs(cys[1]) do
         if i-1 ~= self._axis then
           checker:dimCheck(cx, i, cys[1], i)

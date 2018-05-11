@@ -62,7 +62,7 @@ function onnx_nn.Squeeze(obj, nInputs, nonbatch_mode)
   if nonbatch_mode or obj.numInputDims == nil then
     batch_offset = 0
   end
-  graph:add_node(onnx.node.Squeeze.new({'x'}, {'y'}, { obj.dim + batch_offset }))
+  graph:add_node(onnx.node.Squeeze.new({'x'}, {'y'}, { obj.dim - 1 + batch_offset }))
   return graph
 end
 
@@ -84,10 +84,10 @@ end
 function onnx_nn.Reshape(obj, nInputs, nonbatch_mode)
   nInputs = nInputs or 1
   assert(nInputs == 1, "nn.Reshape can not have multiple inputs")
-  local batchMode = obj.batchMode and not nonbatch_mode
+  local batchMode = obj.batchMode ~= false and not nonbatch_mode
   local reshape = obj.size:totable()
   if batchMode then
-    table.insert(reshape, 0)
+    table.insert(reshape, 1, 0)
   end
   local graph = onnx.graph.new({'x'}, {'y'})
   graph:add_node(onnx.node.Reshape.new({'x', 'ind'}, {'y'}, reshape))
@@ -277,15 +277,15 @@ function onnx_nn.CMulTable(obj, nInputs)
     table.insert(inputs, 'x'..i)
   end
   local graph = onnx.graph.new(inputs, {'y'})
-  local intSum = 'x1'
+  local intMul = 'x1'
   for i = 2, nInputs do
-    local resSum = 'y'
+    local resMul = 'y'
     if i < nInputs then
-      resSum = 'y' .. i
+      resMul = 'y' .. i
     end
-    graph:add_node(onnx.node.Mul.new({intSum, inputs[i]}, {resSum},
+    graph:add_node(onnx.node.Mul.new({intMul, inputs[i]}, {resMul},
                                            onnx.helper.convertPrecision(obj.weight)))
-    intSum = resSum
+    intMul = resMul
   end
   return graph
 end
