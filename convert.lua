@@ -55,6 +55,16 @@ local function convert(output_dir, object, thepath)
   elseif type(object) == 'userdata' or type(object) == 'table' then
     local convert_func = convertor.isSupported(tname)
     if convert_func then
+      local graph = convert_func(object)
+      if object.output then
+        local outputs = object.output
+        if type(outputs) ~= 'table' then
+          outputs = { outputs }
+        end
+        for i, o in ipairs(outputs) do
+          graph:set_dimension(graph._outputs[i], o:size():totable())
+        end
+      end
       print('convert '..thepath..'=`'..tname..'`')
       local model = onnx_pb.ModelProto()
       model.ir_version = onnx_pb.VERSION_IR_VERSION_ENUM.number
@@ -63,7 +73,6 @@ local function convert(output_dir, object, thepath)
       local version = model.opset_import:add()
       version.version = 6
       model.graph.name = thepath
-      local graph = convert_func(object)
       graph:build(onnx_pb, model.graph)
       local output = assert(io.open(output_dir .. '/' .. thepath .. '.onnx', "wb"))
       model:SerializeToIOString(output)

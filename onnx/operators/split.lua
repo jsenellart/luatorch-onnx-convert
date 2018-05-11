@@ -17,7 +17,6 @@ function Split:getShapeConstraint(checker)
   for _, p in pairs(self._outputs) do
     local cy = checker:getParam(p)
     if #cy ~= 0 then
-      print(cy,self._axis)
       assert(cy[self._axis+1] == 1, "inconsistent size of axis output")
       if nbDimOuput == nil then
         nbDimOutput = #cy

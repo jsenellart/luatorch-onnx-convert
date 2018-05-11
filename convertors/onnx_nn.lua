@@ -99,7 +99,7 @@ function onnx_nn.LookupTable(obj, nInputs)
   nInputs = nInputs or 1
   assert(nInputs == 1, "nn.Lookup can not have multiple inputs")
   local graph = onnx.graph.new({'x'}, {'y'})
-  graph:add_node(onnx.node.Gather.new({'x', 'ind'}, {'y'},
+  graph:add_node(onnx.node.Gather.new({'ind', 'x'}, {'y'},
                                    onnx.helper.convertPrecision(obj.weight),
                                    0)) -- axis
   graph:add_initializer('ind', obj.weight)
@@ -186,7 +186,6 @@ function onnx_nn.SplitTable(obj, nInputs)
   table.insert(outputSplit, obj.dimension, 1)
   for i = 1, #obj.output do
     graph:add_node(onnx.node.Reshape({'sy'..i, 'ind'}, {'y'..i}))
-    graph:set_dimension('y'..i, outputSplit)
   end
   graph:add_initializer('ind', torch.Tensor(outputDim))
   return graph

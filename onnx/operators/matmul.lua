@@ -8,7 +8,7 @@ end
 -- given some constraint for the named parameters, check the compatibility
 -- and refine these constraints
 function MatMul:getShapeConstraint(checker)
-  checker:setChange(true)
+  checker:setChange(false)
 
   local ca = checker:assert2D(self._inputs[1])
   local cb = checker:assert2D(self._inputs[2])

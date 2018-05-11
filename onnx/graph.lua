@@ -99,9 +99,13 @@ function Graph:merge(subgraph, idx)
   for param, obj in pairs(subgraph._initializer) do
     self:add_initializer('n'..idx..'.'..param, obj)
   end
-  -- propagate parameter constrain in subgraph into graph
+  -- propagate parameter constrain from subgraph into graph
   for param, shape in pairs(subgraph._checker._params) do
     self._checker._params['n'..idx..'.'..param] = shape
+  end
+  -- propagate parameter type from subgraph into graph
+  for param, t in pairs(subgraph._checker._types) do
+    self._checker._types['n'..idx..'.'..param] = t
   end
 end
 
@@ -112,7 +116,9 @@ function Graph:build(onnx_pb, onnx_graph)
   while change do
     change = false
     for _, n in pairs(self._nodes) do
-      change = n:getShapeConstraint(self._checker) or change
+      if n:getShapeConstraint(self._checker) then
+        change = true
+      end
     end
   end
 
@@ -120,7 +126,11 @@ function Graph:build(onnx_pb, onnx_graph)
   for _, p in ipairs(self._inputs) do
     local input = onnx_graph.input:add()
     input.name = p
-    input.type.tensor_type.elem_type = onnx_pb.TensorProto.FLOAT
+    if self._checker:getType(p) == "INT32" then
+      input.type.tensor_type.elem_type = onnx_pb.TensorProto.INT32
+    else
+      input.type.tensor_type.elem_type = onnx_pb.TensorProto.FLOAT
+    end
     -- needed because of bug in protobuf library
     input.type:_Modified(true)
     for _, d in ipairs(self._checker:params()[p]) do
@@ -132,7 +142,11 @@ function Graph:build(onnx_pb, onnx_graph)
   for p, _ in pairs(self._initializer) do
     local input = onnx_graph.input:add()
     input.name = p
-    input.type.tensor_type.elem_type = onnx_pb.TensorProto.FLOAT
+    if self._checker:getType(p) == "INT32" then
+      input.type.tensor_type.elem_type = onnx_pb.TensorProto.INT32
+    else
+      input.type.tensor_type.elem_type = onnx_pb.TensorProto.FLOAT
+    end
     -- needed because of bug in protobuf library
     input.type:_Modified(true)
     for _, d in ipairs(self._checker:params()[p]) do
@@ -144,10 +158,14 @@ function Graph:build(onnx_pb, onnx_graph)
   for _, p in ipairs(self._outputs) do
     local output = onnx_graph.output:add()
     output.name = p
-    output.type.tensor_type.elem_type = onnx_pb.TensorProto.FLOAT
+    if self._checker:getType(p) == "INT32" then
+      output.type.tensor_type.elem_type = onnx_pb.TensorProto.INT32
+    else
+      output.type.tensor_type.elem_type = onnx_pb.TensorProto.FLOAT
+    end
     -- needed because of bug in protobuf library
     output.type:_Modified(true)
-    for _, d in ipairs(self._checker:params()[p]) do
+    for _, d in ipairs(self._checker:getParam(p)) do
       output.type.tensor_type.shape.dim:add().dim_value = d
     end
   end
@@ -165,7 +183,11 @@ function Graph:build(onnx_pb, onnx_graph)
     for _, d in ipairs(self._checker:params()[p]) do
       initializer.dims:append(d)
     end
-    initializer.data_type = onnx_pb.TensorProto.FLOAT
+    if self._checker:getType(p) == "INT" then
+      initializer.data_type = onnx_pb.TensorProto.INT32
+    else
+      initializer.data_type = onnx_pb.TensorProto.FLOAT
+    end
     initializer.name = p
     local file = torch.DiskFile(self._tmpfile, 'w'):binary()
     file:writeFloat(w:storage().new(w:storage(), w:storageOffset(), w:nElement()))

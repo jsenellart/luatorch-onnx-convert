@@ -2,6 +2,7 @@ local Checker = torch.class('onnx.checker')
 
 function Checker:__init()
   self._params = {}
+  self._types = {}
   self._change = false
   self._unkDimIdx = -1;
 end
@@ -25,6 +26,14 @@ end
 
 function Checker:params()
   return self._params
+end
+
+function Checker:setType(p, t)
+  self._types[p] = t
+end
+
+function Checker:getType(p)
+  return self._types[p] or "FLOAT"
 end
 
 -- get or create a param, we don't know dimension

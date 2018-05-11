@@ -60,7 +60,6 @@ function Concat:getShapeConstraint(checker)
       for j = 1, #cx do
         checker:dimCheck(cx, j, sizes, j)
       end
-      print('==', cx, self._axis)
       if height ~= nil and cx[self._axis+1] > 0 then
         height = height + cx[self._axis+1]
       end
@@ -80,5 +79,5 @@ end
 
 function Concat:build(onnx_pb, node)
   parent.build(self, onnx_pb, node)
-  self.addAttribute(node, "axis", 'i', self._perm, onnx_pb.AttributeProto.INT)
+  self.addAttribute(node, "axis", 'i', self._axis, onnx_pb.AttributeProto.INT)
 end
