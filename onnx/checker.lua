@@ -97,7 +97,7 @@ end
 
 function Checker:setDims(p1, dims)
   local p1dim = self._params[p1]
-  if p1dim == nil then
+  if p1dim == nil or #p1dim == 0 then
     self._params[p1] = dims
     self._change = true
     return true

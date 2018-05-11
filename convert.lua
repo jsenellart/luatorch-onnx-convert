@@ -55,6 +55,7 @@ local function convert(output_dir, object, thepath)
   elseif type(object) == 'userdata' or type(object) == 'table' then
     local convert_func = convertor.isSupported(tname)
     if convert_func then
+      print('convert '..thepath..'=`'..tname..'`')
       local graph = convert_func(object)
       if object.output then
         local outputs = object.output
@@ -65,7 +66,6 @@ local function convert(output_dir, object, thepath)
           graph:set_dimension(graph._outputs[i], o:size():totable())
         end
       end
-      print('convert '..thepath..'=`'..tname..'`')
       local model = onnx_pb.ModelProto()
       model.ir_version = onnx_pb.VERSION_IR_VERSION_ENUM.number
       model.producer_name = 'lua-onnx-convert'

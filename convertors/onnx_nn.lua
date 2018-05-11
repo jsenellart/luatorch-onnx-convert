@@ -181,13 +181,9 @@ function onnx_nn.SplitTable(obj, nInputs)
   end
   local graph = onnx.graph.new({'x'}, outputs)
   graph:add_node(onnx.node.Split({'x'}, soutputs, obj.dimension-1))
-  local outputDim = obj.output[1]:size():totable()
-  local outputSplit = obj.output[1]:size():totable()
-  table.insert(outputSplit, obj.dimension, 1)
   for i = 1, #obj.output do
-    graph:add_node(onnx.node.Reshape({'sy'..i, 'ind'}, {'y'..i}))
+    graph:add_node(onnx.node.Squeeze({'sy'..i}, {'y'..i}, {obj.dimension-1}))
   end
-  graph:add_initializer('ind', torch.Tensor(outputDim))
   return graph
 end
 

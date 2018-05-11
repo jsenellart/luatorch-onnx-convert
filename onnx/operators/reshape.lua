@@ -15,6 +15,7 @@ function Reshape:getShapeConstraint(checker)
   local cind = checker:assert1D(self._inputs[2])
   local cy = checker:getParam(self._outputs[1])
 
+  -- reshape is not inversible - we can not infer shape of input given output
   if self._fixedShape ~= nil then
     if #cy == 0 then
       for i = 1, #self._fixedShape do

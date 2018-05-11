@@ -17,7 +17,11 @@ function Split:getShapeConstraint(checker)
   for _, p in pairs(self._outputs) do
     local cy = checker:getParam(p)
     if #cy ~= 0 then
-      assert(cy[self._axis+1] == 1, "inconsistent size of axis output")
+      if cy[self._axis+1] < 0 then
+        checker:changeUnk(cy[self._axis+1], 1)
+      else
+        assert(cy[self._axis+1] == 1, "inconsistent size of axis output")
+      end
       if nbDimOuput == nil then
         nbDimOutput = #cy
       else
@@ -54,4 +58,9 @@ function Split:getShapeConstraint(checker)
   end
 
   return checker:hasChange()
+end
+
+function Split:build(onnx_pb, node)
+  parent.build(self, onnx_pb, node)
+  self.addAttribute(node, "axis", 'i', self._axis, onnx_pb.AttributeProto.INT)
 end
