@@ -41,13 +41,7 @@ function Concat:getShapeConstraint(checker)
 
   if nbdim ~= nil then
     for _, p in pairs(self._inputs) do
-      local cx = checker:getParam(p)
-      if #cx == 0 then
-        for i = 1, nbdim do
-          table.insert(cx, checker:getUnkDimIdx())
-        end
-        checker:setChange(true)
-      end
+      local cx = checker:assertND(p, nbdim)
       for i = 1, nbdim do
         if i-1 ~= self._axis then
           checker:dimCheck(cx, i, sizes, i)
@@ -56,9 +50,7 @@ function Concat:getShapeConstraint(checker)
     end
 
     if #cy == 0 then
-      for i = 1, nbdim do
-        table.insert(cy, checker:getUnkDimIdx())
-      end
+      cy = checker:assertND(self._outputs[1], nbdim)
       checker:setChange(true)
     end
     if sumaxisx ~= nil then

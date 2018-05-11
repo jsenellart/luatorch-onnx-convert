@@ -40,13 +40,9 @@ function Gather:getShapeConstraint(checker)
   elseif #cy ~= 0 then
     checker:setChange(true)
     if #cx == 0 then
-      for i = 1, #cy - #cind + 1 do
-        table.insert(cx, checker:getUnkDimIdx())
-      end
+      cx = check:assertND(self._inputs[2], #cy - #cind + 1)
     else
-      for i = 1, #cy - #cx + 1 do
-        table.insert(cind, checker:getUnkDimIdx())
-      end
+      cind = check:assertND(self._inputs[1], #cy - #cx + 1)
     end
   end
 

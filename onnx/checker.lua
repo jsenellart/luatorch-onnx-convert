@@ -120,24 +120,26 @@ function Checker:setDims(p1, dims)
   end
 end
 
-function Checker:assert2D(param)
+function Checker:assertND(param, n)
   if self._params[param] == nil or #self._params[param] == 0 then
     self._change = true
-    self._params[param] = { self:getUnkDimIdx(), self:getUnkDimIdx() }
+    self._params[param] = { }
+    for i = 1, n do
+      table.insert(self._params[param], self:getUnkDimIdx())
+    end
   else
-    assert(#self._params[param] == 2, "param `"..param.."` has inconsistent number of dimension")
+    assert(#self._params[param] == n, "param `"..param.."` has inconsistent number of dimension "
+           ..#self._params[param].."/"..n)
   end
   return self._params[param]
 end
 
+function Checker:assert2D(param)
+  return self:assertND(param, 2)
+end
+
 function Checker:assert1D(param)
-  if self._params[param] == nil or #self._params[param] == 0 then
-    self._change = true
-    self._params[param] = { self:getUnkDimIdx() }
-  else
-    assert(#self._params[param] == 1, "param `"..param.."` has inconsistent number of dimension")
-  end
-  return self._params[param]
+  return self:assertND(param, 1)
 end
 
 function Checker:assert1or2D(param)

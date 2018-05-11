@@ -30,7 +30,7 @@ local function _fix_label_rec(refp, p, mapIndex, selectindex, graph, parent, nod
   end
 end
 
-function onnx_nn.gModule(obj)
+function onnx_nn.gModule(obj, _, nonbatch_mode)
   local inputs = {}
   local outputs = {}
   for i = 1, obj.nInputs do
@@ -86,7 +86,7 @@ function onnx_nn.gModule(obj)
       if type(object) == 'userdata' or type(object) == 'table' then
         local convert_func = convertor.isSupported(tname)
         if convert_func then
-          local subgraph = convert_func(object, nInput[torch.pointer(node)])
+          local subgraph = convert_func(object, nInput[torch.pointer(node)], nonbatch_mode)
           graph:merge(subgraph, i)
           subgraphs[torch.pointer(node)] = subgraph
           for _, child in ipairs(node.children) do

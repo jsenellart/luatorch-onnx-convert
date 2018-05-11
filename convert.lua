@@ -36,6 +36,7 @@ cmd:option('-require', 'nngraph', [[List of modules to import for loading the to
 cmd:option('-models', '', [[Field in the object where the models is/are.]])
 cmd:option('-output_dir', '', [[Path to directory where onnx models will be serialized.]] ..
                               [[If not set, the extension is changed to _onnxdir.]])
+cmd:option('-nonbatch_mode', true, [[Set if the models were using in non batch mode.]])
 cmd:option('-force', false, [[Force output model creation even if the target file exists.]])
 
 local opt = cmd:parse(arg)
@@ -56,7 +57,7 @@ local function convert(output_dir, object, thepath)
     local convert_func = convertor.isSupported(tname)
     if convert_func then
       print('convert '..thepath..'=`'..tname..'`')
-      local graph = convert_func(object)
+      local graph = convert_func(object, nil, nonbatch_mode)
       if object.output then
         local outputs = object.output
         if type(outputs) ~= 'table' then
