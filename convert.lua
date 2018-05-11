@@ -57,14 +57,20 @@ local function convert(output_dir, object, thepath)
     local convert_func = convertor.isSupported(tname)
     if convert_func then
       print('convert '..thepath..'=`'..tname..'`')
-      local graph = convert_func(object, nil, nonbatch_mode)
+      local save_outputs = {}
       if object.output then
         local outputs = object.output
         if type(outputs) ~= 'table' then
           outputs = { outputs }
         end
-        for i, o in ipairs(outputs) do
-          graph:set_dimension(graph._outputs[i], o:size():totable())
+        for _, o in ipairs(outputs) do
+          table.insert(save_outputs, o)
+        end
+      end
+      local graph = convert_func(object, nil, nonbatch_mode)
+      for i, p in ipairs(graph._outputs) do
+        if save_outputs[i] ~= nil then
+          graph:set_dimension(p, save_outputs[i]:size():totable())
         end
       end
       local model = onnx_pb.ModelProto()
