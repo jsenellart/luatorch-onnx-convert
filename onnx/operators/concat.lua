@@ -12,65 +12,62 @@ function Concat:getShapeConstraint(checker)
 
   local cy = checker:getParam(self._outputs[1])
 
-  local cxs = {}
   local nbdim
   local sizes
+  local sumaxisx = 0
 
   if #cy ~= 0 then
     sizes = cy
     nbdim = #cy
   end
-
   for _, p in pairs(self._inputs) do
     local cx = checker:getParam(p)
     if #cx ~= 0 then
       assert(nbdim == nil or nbdim == #cx, "inconsistent number of dimensions")
-      nbdim = #cx
-      sizes = cx
-    end
-  end
-
-  for _, p in pairs(self._inputs) do
-    local cx = checker:getParam(p)
-    if #cx ~= 0 then
-      assert(nbdim == nil or nbdim == #cx, "inconsistent number of dimensions")
-      nbdim = #cx
-      sizes = cx
-    elseif nbdim ~= nil then
-      for i = 1, nbdim do
-        table.insert(cx, checker:getUnkDimIdx())
+      if sumaxisx ~= nil and cx[self._axis+1] > 0 then
+        sumaxisx = sumaxisx + cx[self._axis+1]
+      else
+        sumaxisx = nil
       end
-      checker:setChange(true)
+      nbdim = #cx
+      sizes = {}
+      for _, v in ipairs(cx) do
+        table.insert(sizes, v)
+      end
+    else
+      sumaxisx = nil
     end
-    table.insert(cxs, cx)
   end
 
   if nbdim ~= nil then
+    for _, p in pairs(self._inputs) do
+      local cx = checker:getParam(p)
+      if #cx == 0 then
+        for i = 1, nbdim do
+          table.insert(cx, checker:getUnkDimIdx())
+        end
+        checker:setChange(true)
+      end
+      for i = 1, nbdim do
+        if i-1 ~= self._axis then
+          checker:dimCheck(cx, i, sizes, i)
+        end
+      end
+    end
+
     if #cy == 0 then
       for i = 1, nbdim do
         table.insert(cy, checker:getUnkDimIdx())
-        checker:dimCheck(cy, i, sizes, i)
       end
       checker:setChange(true)
-    end      
-    -- size of concatenated dimension
-    local height = 0
-
-    for i, cx in pairs(cxs) do
-      for j = 1, #cx do
-        checker:dimCheck(cx, j, sizes, j)
-      end
-      if height ~= nil and cx[self._axis+1] > 0 then
-        height = height + cx[self._axis+1]
-      end
     end
-  end
-
-  if height ~= nil then
-    if cy[self._axis+1] < 0 then
-      self:changeUnk(cy[self._axis+1], height)
+    if sumaxisx ~= nil then
+      sizes[self._axis+1] = sumaxisx
     else
-      assert(cy[self._axis+1] == height, "inconsistent height of concatenated tensor")
+      sizes[self._axis+1] = cy[self._axis+1]
+    end
+    for i = 1, nbdim do
+      checker:dimCheck(cy, i, sizes, i)
     end
   end
 

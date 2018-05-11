@@ -43,17 +43,17 @@ function onnx_nn.MM(obj, nInputs)
 end
 
 function onnx_nn.Squeeze(obj, nInputs)
-  local inputs = { 'a', 'b' }
-  local graph = onnx.graph.new(inputs, {'y'})
-
+  nInputs = nInputs or 1
+  assert(nInputs == 1, "nn.Squeeze can not have multiple inputs")
+  local graph = onnx.graph.new({'x'}, {'y'})
   graph:add_node(onnx.node.Squeeze.new({'x'}, {'y'}, { obj.dim }))
-
   return graph
 end
 
 function onnx_nn.SoftMax(obj, nInputs)
-  local inputs = { 'a', 'b' }
-  local graph = onnx.graph.new(inputs, {'y'})
+  nInputs = nInputs or 1
+  assert(nInputs == 1, "nn.SoftMax can not have multiple inputs")
+  local graph = onnx.graph.new({'x'}, {'y'})
   graph:add_node(onnx.node.SoftMax.new({'x'}, {'y'}))
   return graph
 end
@@ -158,6 +158,30 @@ function onnx_nn.MapTable(obj, nInputs)
   return graph
 end
 
+function onnx_nn.ConcatTable(obj, nInputs)
+  nInputs = nInputs or 1
+  assert(nInputs == 1, "nn.ConcatTable can not have multiple inputs")
+  local inputs = {'x'}
+  for i = 1, #obj.output do
+    table.insert(outputs, 'y'..i)
+  end
+  local graph = onnx.graph.new(inputs, outputs)
+  for i, subobj in pair(obj.modules) do
+    local tname = convertor.mtype(subobj)
+    local convert_func = convertor.isSupported(tname)
+    if convert_func == nil then
+      error('module `'..tname..'` not supported')
+    end
+    local subgraph = convert_func(subobj, 1)
+    assert(#subgraph._outputs == 1)
+    graph:merge(subgraph, i)
+    graph:substitute_param(subgraph._inputs[1], inputs[1])
+    graph:substitute_param(subgraph._outputs[1], outputs[i])
+  end
+  return graph
+end
+
+
 function onnx_nn.JoinTable(obj, nInputs)
   assert(nInputs ~= nil, "JoinTable can only be converted part of a gModule")
   local inputs = {}
@@ -184,16 +208,6 @@ function onnx_nn.SplitTable(obj, nInputs)
   for i = 1, #obj.output do
     graph:add_node(onnx.node.Squeeze({'sy'..i}, {'y'..i}, {obj.dimension-1}))
   end
-  return graph
-end
-
-function onnx_nn.ConcatTable(obj, nInputs)
-  local graph = onnx.graph.new()
-  local inputs = {}
-  for i = 1, nInputs do
-    table.insert(inputs, 'x'..i)
-  end
-  graph:add_node(onnx.node.Concat.new(inputs, {'y'}))
   return graph
 end
 
