@@ -73,23 +73,28 @@ function Checker:dimCheck(p1, i1, p2, i2)
 end
 
 function Checker:sameShape(t)
-  local i = 1
-  while i <= #t and #t[i] == 0 do
-    i = i + 1
+  local idx_nz = 1
+  while idx_nz <= #t and #t[idx_nz] == 0 do
+    idx_nz = idx_nz + 1
   end
-  if i > #t then
+  if idx_nz > #t then
+    -- cannot find a non null member
     return true
   end
   for j = 1, #t do
-    if #t[j] ~= 0 and #t[j] ~= #t[i] then
-      self._err = 'different shapes: '..#t[i]..'/'..#t[j]
+    if #t[j] ~= 0 and #t[j] ~= #t[idx_nz] then
+      self._err = 'different shapes: '..#t[idx_nz]..'/'..#t[j]
       return false
     end
     if #t[j] == 0 then
-      for _, d in ipairs(t[i]) do
+      for _, d in ipairs(t[idx_nz]) do
         table.insert(t[j], d)
       end
       self._change = true
+    else
+      for h = 1, #t[idx_nz] do
+        self:dimCheck(t[idx_nz], h, t[j], h)
+      end
     end
   end
   return true

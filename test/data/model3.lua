@@ -9,4 +9,6 @@ local oA = nn.Sigmoid()(madd)
 local oB = nn.Tanh()(madd)
 local gmod = nn.gModule({h1, h2}, {oA, oB})
 
+gmod:forward({torch.randn(3, 20), torch.randn(3,10)})
+
 torch.save("model3.t7", gmod)
